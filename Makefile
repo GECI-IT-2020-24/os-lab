@@ -1,4 +1,4 @@
-TARGET = test
+TARGET = ffit
 CC=gcc
 CFLAGS= -I header
 all:

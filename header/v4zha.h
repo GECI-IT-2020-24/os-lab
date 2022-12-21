@@ -23,8 +23,10 @@ struct Matrix *Matrix(int, int);
 void getMatrix(struct Matrix *);
 void setMatrix(struct Matrix *);
 struct Vector *Vector(int);
-void getVector(struct Vector *);
-void setVector(struct Vector *);
+void getVec(struct Vector *);
+void setVec(struct Vector *);
+void setVecVal(struct Vector *, int);
+struct Vector *vecWithVal(int, int);
 int *arrMap(int *, int, int (*fn)(int));
 int arrReduce(int *, int, int, int (*fn)(int, int));
 struct Vector *pushVec(struct Vector *, int);
@@ -32,13 +34,21 @@ struct Vector *vecMap(struct Vector *, int (*fn)(int));
 int vecReduce(struct Vector *, int, int (*fn)(int, int));
 struct Vector *vecFilter(struct Vector *, bool (*fn)(int));
 
+// Reduce with default accumulator
 #define arrReduceD(arr, size, fn) (arrReduce(arr, size, 0, fn))
 
 #define vecReduceD(vec, fn) (vecReduce(vec, 0, fn))
 
 #define new_vec(size) (Vector(size))
 
+// fill Vector will value
+#define new_vecF(size, val) (vecWithVal(size, val))
+
+#define zero_vec(size) (vecWithVal(size, 0))
+
 #define new_mtx(m, n) (Matrix(m, n))
+
+#define v_val(v, i) (*(v->data + i))
 
 typedef struct Vector *Vec;
 typedef struct Matrix *Mtx;
@@ -98,6 +108,18 @@ void setVec(struct Vector *vec) {
     scanf("%d", vec->data + i);
   }
   printf("\n");
+}
+
+void setVecVal(struct Vector *vec, int val) {
+  for (int i = 0; i < vec->size; i++) {
+    *(vec->data + i) = val;
+  }
+}
+
+struct Vector *vecWithVal(int size, int val) {
+  Vec v = Vector(size);
+  setVecVal(v, val);
+  return v;
 }
 
 struct Vector *pushVec(struct Vector *vec, int val) {
