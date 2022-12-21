@@ -6,12 +6,10 @@ int main(int argc, char *argv[]) {
   scanf("%d", &proc_no);
   printf("Enter the number of Blocks\n");
   scanf("%d", &block_no);
-  Vec proc = new_vec(proc_no);
   printf("Enter the Size of processes\n");
-  setVec(proc);
-  Vec block = new_vec(block_no);
+  Vec proc = new_vec(proc_no);
   printf("Enter the Size of Blocks\n");
-  setVec(block);
+  Vec block = new_vec(block_no);
   Vec flag = zero_vec(proc_no);
   Vec alloc = new_vecF(proc_no, -1);
   for (int i = 0; i < proc_no; i++) {

@@ -22,11 +22,13 @@ struct Vector {
 struct Matrix *Matrix(int, int);
 void getMatrix(struct Matrix *);
 void setMatrix(struct Matrix *);
+struct Matrix *mtxInit(int, int);
 struct Vector *Vector(int);
 void getVec(struct Vector *);
 void setVec(struct Vector *);
 void setVecVal(struct Vector *, int);
-struct Vector *vecWithVal(int, int);
+struct Vector *vecFillVal(int, int);
+struct Vector *vecInit(int);
 int *arrMap(int *, int, int (*fn)(int));
 int arrReduce(int *, int, int, int (*fn)(int, int));
 struct Vector *pushVec(struct Vector *, int);
@@ -39,14 +41,20 @@ struct Vector *vecFilter(struct Vector *, bool (*fn)(int));
 
 #define vecReduceD(vec, fn) (vecReduce(vec, 0, fn))
 
-#define new_vec(size) (Vector(size))
+#define new_vec(size) (vecInit(size))
 
 // fill Vector will value
-#define new_vecF(size, val) (vecWithVal(size, val))
+#define new_vecF(size, val) (vecFillVal(size, val))
 
-#define zero_vec(size) (vecWithVal(size, 0))
+#define zero_vec(size) (vecFillVal(size, 0))
 
-#define new_mtx(m, n) (Matrix(m, n))
+#define new_mtx(m, n) (mtxInit(m, n))
+
+#define new_mtxF(m, n, val) (mtxFillVal(m, n, val))
+
+#define zero_mtx(m, n) (mtxFillVal(m, n, 0))
+
+#define mtx_val (mtx, i, j)(*(*(mtx->data + i) + j))
 
 #define v_val(v, i) (*(v->data + i))
 
@@ -85,7 +93,25 @@ void setMtx(struct Matrix *mtx) {
     }
   }
 }
+struct Matrix *mtxInit(int m, int n) {
+  struct Matrix *mtx = Matrix(m, n);
+  setMtx(mtx);
+  return mtx;
+}
 
+void setMtxVal(struct Matrix *mtx, int val) {
+  for (int i = 0; i < mtx->r_size; i++) {
+    for (int j = 0; j < mtx->c_size; j++) {
+      *(*(mtx->data + i) + j) = val;
+    }
+  }
+}
+
+struct Matrix *mtxFillVal(int m, int n, int val) {
+  struct Matrix *mtx = Matrix(m, n);
+  setMtxVal(mtx, val);
+  return mtx;
+}
 struct Vector *Vector(int size) {
   int *data = (int *)malloc(size * sizeof(int));
   struct Vector *vec = (struct Vector *)malloc(sizeof(struct Vector));
@@ -110,13 +136,18 @@ void setVec(struct Vector *vec) {
   printf("\n");
 }
 
+struct Vector *vecInit(int size) {
+  struct Vector *v = Vector(size);
+  setVec(v);
+  return v;
+}
 void setVecVal(struct Vector *vec, int val) {
   for (int i = 0; i < vec->size; i++) {
     *(vec->data + i) = val;
   }
 }
 
-struct Vector *vecWithVal(int size, int val) {
+struct Vector *vecFillVal(int size, int val) {
   Vec v = Vector(size);
   setVecVal(v, val);
   return v;
@@ -126,10 +157,12 @@ struct Vector *pushVec(struct Vector *vec, int val) {
   int new_size = vec->size + 1;
   int *new_data = (int *)malloc(sizeof(int) * new_size);
   memcpy(new_data, vec->data, vec->size * sizeof(int));
-  *(new_data + new_size) = val;
+  *(new_data + new_size - 1) = val;
   // takes ownership and free old Vector
   free(vec);
   struct Vector *newVec = (struct Vector *)malloc(sizeof(struct Vector));
+  newVec->size = new_size;
+  newVec->data = new_data;
   return newVec;
 }
 
