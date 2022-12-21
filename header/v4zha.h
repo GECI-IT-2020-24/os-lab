@@ -34,6 +34,8 @@ int arrReduce(int *, int, int, int (*fn)(int, int));
 struct Vector *pushVec(struct Vector *, int);
 struct Vector *vecMap(struct Vector *, int (*fn)(int));
 int vecReduce(struct Vector *, int, int (*fn)(int, int));
+int vecFind(struct Vector *, bool (*fn)(int));
+int vecFindIndex(struct Vector *, bool (*fn)(int));
 struct Vector *vecFilter(struct Vector *, bool (*fn)(int));
 
 // Reduce with default accumulator
@@ -102,6 +104,7 @@ struct Matrix *mtxInit(int m, int n) {
 void setMtxVal(struct Matrix *mtx, int val) {
   for (int i = 0; i < mtx->r_size; i++) {
     for (int j = 0; j < mtx->c_size; j++) {
+      // use memset as alternative : )
       *(*(mtx->data + i) + j) = val;
     }
   }
@@ -143,6 +146,7 @@ struct Vector *vecInit(int size) {
 }
 void setVecVal(struct Vector *vec, int val) {
   for (int i = 0; i < vec->size; i++) {
+    // use memset as alternative : )
     *(vec->data + i) = val;
   }
 }
@@ -221,4 +225,25 @@ struct Vector *vecFilter(struct Vector *vec, bool (*fn)(int)) {
   resVec->size = new_size;
   resVec->data = resData;
   return resVec;
+}
+
+int vecFind(struct Vector *vec, bool (*fn)(int)) {
+  int val = -1;
+  for (int i = 0; i < vec->size; i++) {
+    if (fn(*(vec->data + i))) {
+      val = *(vec->data + i);
+      break;
+    }
+  }
+  return val;
+}
+int vecFindIndex(struct Vector *vec, bool (*fn)(int)) {
+  int index = -1;
+  for (int i = 0; i < vec->size; i++) {
+    if (fn(*(vec->data + i))) {
+      index = i;
+      break;
+    }
+  }
+  return index;
 }

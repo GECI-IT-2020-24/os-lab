@@ -1,4 +1,4 @@
-TARGET = ffit
+TARGET = mem_mgmt
 CC=gcc
 CFLAGS= -I header
 all:
