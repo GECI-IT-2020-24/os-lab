@@ -31,8 +31,9 @@ struct Vector *vecFillVal(int, int);
 struct Vector *vecInit(int);
 int *arrMap(int *, int, int (*fn)(int));
 int arrReduce(int *, int, int, int (*fn)(int, int));
-struct Vector *pushVec(struct Vector *, int);
+void pushVec(struct Vector *, int);
 struct Vector *vecMap(struct Vector *, int (*fn)(int));
+struct Vector *cloneVec(struct Vector *);
 int vecReduce(struct Vector *, int, int (*fn)(int, int));
 int vecFind(struct Vector *, bool (*fn)(int));
 int vecFindIndex(struct Vector *, bool (*fn)(int));
@@ -60,15 +61,18 @@ struct Vector *vecFilter(struct Vector *, bool (*fn)(int));
 
 #define v_val(v, i) (*(v->data + i))
 
+#define clone_vec(v) (cloneVec(v))
+
 typedef struct Vector *Vec;
 typedef struct Matrix *Mtx;
 
 #endif
 
 struct Matrix *Matrix(int m, int n) {
-  int **data = (int **)malloc(m * sizeof(int *));
+  int **data = (int **)malloc(m * sizeof(int *) + (sizeof(int) * n * m));
   for (int i = 0; i < m; i++) {
-    *(data + i) = (int *)malloc(sizeof(int) * n);
+    // set row pointer : )
+    *(data + i) = (int *)(data + m + n * i);
   }
   struct Matrix *mtx = (struct Matrix *)malloc(sizeof(struct Matrix));
   mtx->r_size = m;
@@ -91,9 +95,13 @@ void setMtx(struct Matrix *mtx) {
   for (int i = 0; i < mtx->r_size; i++) {
     for (int j = 0; j < mtx->c_size; j++) {
       printf("[%d,%d] : ", i, j);
-      scanf("%d", *(mtx->data + i) + j);
+      scanf("%d", (*(mtx->data + i) + j));
     }
   }
+}
+void freeMtx(struct Matrix *mtx) {
+  free(mtx->data);
+  free(mtx);
 }
 struct Matrix *mtxInit(int m, int n) {
   struct Matrix *mtx = Matrix(m, n);
@@ -157,19 +165,25 @@ struct Vector *vecFillVal(int size, int val) {
   return v;
 }
 
-struct Vector *pushVec(struct Vector *vec, int val) {
-  int new_size = vec->size + 1;
-  int *new_data = (int *)malloc(sizeof(int) * new_size);
-  memcpy(new_data, vec->data, vec->size * sizeof(int));
-  *(new_data + new_size - 1) = val;
-  // takes ownership and free old Vector
-  free(vec);
-  struct Vector *newVec = (struct Vector *)malloc(sizeof(struct Vector));
-  newVec->size = new_size;
-  newVec->data = new_data;
-  return newVec;
+void pushVec(struct Vector *vec, int val) {
+  vec->data = (int *)realloc(vec->data, sizeof(int));
+  vec->size += 1;
+  *(vec->data + vec->size - 1) = val;
 }
 
+struct Vector *cloneVec(struct Vector *vec) {
+  int size = vec->size;
+  int *new_data = (int *)malloc(sizeof(int) * size);
+  memcpy(new_data, vec->data, size * sizeof(int));
+  struct Vector *new_vec = (struct Vector *)malloc(sizeof(struct Vector));
+  new_vec->size = size;
+  new_vec->data = new_data;
+  return new_vec;
+}
+void freeVec(struct Vector *vec) {
+  free(vec->data);
+  free(vec);
+}
 int *arrMap(int *arr, int size, int (*fn)(int)) {
   int *newArr = (int *)malloc(sizeof(int) * size);
   for (int i = 0; i < size; i++) {
@@ -192,7 +206,7 @@ int arrReduce(int *arr, int size, int acc, int (*fn)(int, int)) {
 struct Vector *vecMap(struct Vector *vec, int (*fn)(int)) {
   int size = vec->size;
   int *new_data = arrMap(vec->data, vec->size, fn);
-  free(vec);
+  freeVec(vec);
   struct Vector *v = (struct Vector *)malloc(sizeof(struct Vector));
   v->size = size;
   v->data = new_data;
@@ -201,7 +215,7 @@ struct Vector *vecMap(struct Vector *vec, int (*fn)(int)) {
 
 int vecReduce(struct Vector *vec, int acc, int (*fn)(int, int)) {
   int res = arrReduce(vec->data, vec->size, acc, fn);
-  free(vec);
+  freeVec(vec);
   return res;
 }
 
@@ -220,7 +234,7 @@ struct Vector *vecFilter(struct Vector *vec, bool (*fn)(int)) {
       count++;
     }
   }
-  free(vec);
+  freeVec(vec);
   struct Vector *resVec = (struct Vector *)malloc(sizeof(struct Vector));
   resVec->size = new_size;
   resVec->data = resData;
