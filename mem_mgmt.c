@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
   Vec bfit_block = clone_vec(ffit_block);
   Vec wfit_block = clone_vec(bfit_block);
   Vec ffit_alloc = firstFit(proc, ffit_block);
+  print_footer("-", 40);
   displayAlloc(proc, ffit_alloc, "FirstFit");
   freeVec(ffit_alloc);
   freeVec(ffit_block);
