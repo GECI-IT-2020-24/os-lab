@@ -1,4 +1,4 @@
-TARGET = mem_mgmt
+TARGET = cpu_shed
 CC=gcc
 CFLAGS= -I header
 all:
