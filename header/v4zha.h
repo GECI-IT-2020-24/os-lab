@@ -30,9 +30,11 @@ void setVecVal(struct Vector *, int);
 struct Vector *vecFillVal(int, int);
 struct Vector *vecInit(int);
 int *arrMap(int *, int, int (*fn)(int));
+int *arrIndexMap(int *, int, int (*fn)(int, int));
 int arrReduce(int *, int, int, int (*fn)(int, int));
 void pushVec(struct Vector *, int);
 struct Vector *vecMap(struct Vector *, int (*fn)(int));
+struct Vector *vecIndexMap(struct Vector *, int (*fn)(int, int));
 struct Vector *cloneVec(struct Vector *);
 int vecReduce(struct Vector *, int, int (*fn)(int, int));
 int vecFind(struct Vector *, bool (*fn)(int));
@@ -50,6 +52,8 @@ struct Vector *vecFilter(struct Vector *, bool (*fn)(int));
 #define new_vecF(size, val) (vecFillVal(size, val))
 
 #define zero_vec(size) (vecFillVal(size, 0))
+
+#define vec_range(start, end) (range(start, end))
 
 #define new_mtx(m, n) (mtxInit(m, n))
 
@@ -146,6 +150,16 @@ void setVec(struct Vector *vec) {
   }
   printf("\n");
 }
+void unsafeSetVec(struct Vector *vec, char *desc) {
+  for (int i = 0; i < vec->size; i++) {
+    // Unsafe : )
+    // sanitize format string before execution
+    // Note : May result in formatString exploits : )
+    printf(desc, i);
+    scanf("%d", vec->data + i);
+  }
+  printf("\n");
+}
 
 struct Vector *vecInit(int size) {
   struct Vector *v = Vector(size);
@@ -193,6 +207,15 @@ int *arrMap(int *arr, int size, int (*fn)(int)) {
   free(arr);
   return newArr;
 }
+int *arrIndexMap(int *arr, int size, int (*fn)(int, int)) {
+  int *newArr = (int *)malloc(sizeof(int) * size);
+  for (int i = 0; i < size; i++) {
+    *(newArr + i) = fn(*(arr + i), i);
+  }
+  // takes ownership of array
+  free(arr);
+  return newArr;
+}
 
 int arrReduce(int *arr, int size, int acc, int (*fn)(int, int)) {
   for (int i = 0; i < size; i++) {
@@ -206,6 +229,15 @@ int arrReduce(int *arr, int size, int acc, int (*fn)(int, int)) {
 struct Vector *vecMap(struct Vector *vec, int (*fn)(int)) {
   int size = vec->size;
   int *new_data = arrMap(vec->data, vec->size, fn);
+  freeVec(vec);
+  struct Vector *v = (struct Vector *)malloc(sizeof(struct Vector));
+  v->size = size;
+  v->data = new_data;
+  return v;
+}
+struct Vector *vecIndexMap(struct Vector *vec, int (*fn)(int, int)) {
+  int size = vec->size;
+  int *new_data = arrIndexMap(vec->data, vec->size, fn);
   freeVec(vec);
   struct Vector *v = (struct Vector *)malloc(sizeof(struct Vector));
   v->size = size;
@@ -260,4 +292,17 @@ int vecFindIndex(struct Vector *vec, bool (*fn)(int)) {
     }
   }
   return index;
+}
+
+struct Vector *range(int start, int end) {
+  if (start >= end) {
+    printf("Error! %d > %d , Cannot generate Range", start, end);
+    exit(0);
+  }
+  int size = end - start;
+  Vec res = Vector(size);
+  for (int i = start; i < end; i++) {
+    v_val(res, i) = i;
+  }
+  return res;
 }
