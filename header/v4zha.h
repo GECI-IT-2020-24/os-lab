@@ -61,7 +61,7 @@ struct Vector *vecFilter(struct Vector *, bool (*fn)(int));
 
 #define zero_mtx(m, n) (mtxFillVal(m, n, 0))
 
-#define mtx_val (mtx, i, j)(*(*(mtx->data + i) + j))
+#define mtx_val(mtx, i, j) (*(*(mtx->data + i) + j))
 
 #define v_val(v, i) (*(v->data + i))
 
@@ -127,6 +127,30 @@ struct Matrix *mtxFillVal(int m, int n, int val) {
   setMtxVal(mtx, val);
   return mtx;
 }
+void mtxSum(Mtx res, Mtx a, Mtx b) {
+  if (a->c_size != b->c_size || a->r_size != b->r_size) {
+    printf("Error getting sum of Matrix \n");
+    exit(0);
+  } else {
+    for (int i = 0; i < a->r_size; i++) {
+      for (int j = 0; j < a->c_size; j++) {
+        res->data[i][j] = a->data[i][j] + b->data[i][j];
+      }
+    }
+  }
+}
+void mtxDiff(Mtx res, Mtx a, Mtx b) {
+  if (a->c_size != b->c_size || a->r_size != b->r_size) {
+    printf("Error getting sum of Matrix \n");
+    exit(0);
+  } else {
+    for (int i = 0; i < a->r_size; i++) {
+      for (int j = 0; j < a->c_size; j++) {
+        res->data[i][j] = a->data[i][j] - b->data[i][j];
+      }
+    }
+  }
+}
 struct Vector *Vector(int size) {
   int *data = (int *)malloc(size * sizeof(int));
   struct Vector *vec = (struct Vector *)malloc(sizeof(struct Vector));
@@ -150,16 +174,16 @@ void setVec(struct Vector *vec) {
   }
   printf("\n");
 }
-void unsafeSetVec(struct Vector *vec, char *desc) {
-  for (int i = 0; i < vec->size; i++) {
-    // Unsafe : )
-    // sanitize format string before execution
-    // Note : May result in formatString exploits : )
-    printf(desc, i);
-    scanf("%d", vec->data + i);
-  }
-  printf("\n");
-}
+// void unsafeSetVec(struct Vector *vec, char *desc) {
+//   for (int i = 0; i < vec->size; i++) {
+//     // Unsafe : )
+//     // sanitize format string before execution
+//     // Note : May result in formatString exploits : )
+//     printf(desc, i);
+//     scanf("%d", vec->data + i);
+//   }
+//   printf("\n");
+// }
 
 struct Vector *vecInit(int size) {
   struct Vector *v = Vector(size);
@@ -249,6 +273,15 @@ int vecReduce(struct Vector *vec, int acc, int (*fn)(int, int)) {
   int res = arrReduce(vec->data, vec->size, acc, fn);
   freeVec(vec);
   return res;
+}
+
+int vecSum(struct Vector *vec) {
+  // reduce not used bcoz reduce frees Vector after call [takes ownership] : )
+  int sum = 0;
+  for (int i = 0; i < vec->size; i++) {
+    sum += vec->data[i];
+  }
+  return sum;
 }
 
 struct Vector *vecFilter(struct Vector *vec, bool (*fn)(int)) {
